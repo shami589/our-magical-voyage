@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 共有URLの40桁ランダムなルームIDを知る匿名ログイン利用者だけが
+    // そのルームの注文を扱える方式。URLを知る人は閲覧・編集できます。
+    // 強い本人認証が必要なら、メンバー招待型認証に変更してください。
+    match /rooms/{room}/orders/{orderId} {
+      function inRoom() {
+        return request.auth != null && room.matches('[0-9a-f]{40}');
+      }
+      function validOrder() {
+        return request.resource.data.keys().hasOnly(['item','price','qty','payer','people','createdAt'])
+          && request.resource.data.keys().hasAll(['item','price','qty','payer','people','createdAt'])
+          && request.resource.data.item is string
+          && request.resource.data.item.size() > 0 && request.resource.data.item.size() <= 80
+          && request.resource.data.price is int && request.resource.data.price >= 1 && request.resource.data.price <= 1000000
+          && request.resource.data.qty is int && request.resource.data.qty >= 1 && request.resource.data.qty <= 100
+          && request.resource.data.payer in ['misa','haruka','ayaka','keito']
+          && request.resource.data.people is list
+          && request.resource.data.people.size() >= 1 && request.resource.data.people.size() <= 4
+          && request.resource.data.people.hasOnly(['misa','haruka','ayaka','keito'])
+          && request.resource.data.createdAt is int;
+      }
+      allow get, list: if inRoom();
+      allow create, update: if inRoom() && validOrder();
+      allow delete: if inRoom();
+    }
+  }
+}
