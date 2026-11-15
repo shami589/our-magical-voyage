@@ -8,3 +8,4 @@ window.FIREBASE_CONFIG = {
   appId: "1:128718051271:web:6c25799bb6f2875e652be2",
   measurementId: "G-L90Y0KFD6Z"
 };
+window.FUND_ADMIN_UID = 'mIj37XYetXMpm8ZG53R2FL80Hdl2';
